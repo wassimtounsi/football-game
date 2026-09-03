@@ -86,7 +86,8 @@ export default function Game({ code, playerId, name, challenge, players, phase, 
 
   // --- PHASE RESULTATS ---
   if (revealed) {
-    return <ResultsView revealed={revealed} name={name} playerId={playerId} onRestart={onRestart} />;
+    const isHost = players && players[0]?.id === playerId;
+    return <ResultsView revealed={revealed} name={name} playerId={playerId} isHost={isHost} onRestart={onRestart} />;
   }
 
   const challengeActive = challenge || phase.status === 'betting';
@@ -202,7 +203,7 @@ export default function Game({ code, playerId, name, challenge, players, phase, 
 }
 
 // ==== Vue résultats ====
-function ResultsView({ revealed, name, playerId, onRestart }) {
+function ResultsView({ revealed, name, playerId, isHost, onRestart }) {
   const { target, statistic, competition, cumulative, results, winners, leaderboard } = revealed;
   const sorted = [...(results || [])].sort((a, b) => a.diff - b.diff);
 
@@ -264,9 +265,15 @@ function ResultsView({ revealed, name, playerId, onRestart }) {
         </div>
       )}
 
-      <button className="btn success block" onClick={onRestart}>
-        Rejouer
-      </button>
+      {isHost ? (
+        <button className="btn success block" onClick={onRestart}>
+          Rejouer
+        </button>
+      ) : (
+        <p className="muted" style={{ textAlign: 'center' }}>
+          En attente que l'hôte lance la prochaine manche...
+        </p>
+      )}
     </div>
   );
 }
