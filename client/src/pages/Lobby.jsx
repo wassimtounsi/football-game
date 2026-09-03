@@ -23,6 +23,11 @@ export default function Lobby({ code, playerId, name }) {
     }
     function onPhase(p) {
       setPhase(p);
+      // Nouvelle manche (betting) : on efface les résultats précédents
+      if (p.status === 'betting') {
+        setRevealed(null);
+        setBetProgress(null);
+      }
     }
     function onReveal(r) {
       setRevealed(r);

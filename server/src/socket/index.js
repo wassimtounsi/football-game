@@ -71,8 +71,9 @@ export function setupSocket(io) {
       io.to(code).emit('phase', { status: 'betting', deadline: room2.deadline });
       ack?.({ ok: true });
 
-      // Révélation automatique après le délai
-      setTimeout(() => revealRoom(code), 90_000);
+      // Révélation automatique après le délai (reset si on relance une manche)
+      if (room2.revealTimer) clearTimeout(room2.revealTimer);
+      room2.revealTimer = setTimeout(() => revealRoom(code), 90_000);
     });
 
     socket.on('bet:place', (data, ack) => {
@@ -324,8 +325,9 @@ async function revealRoom(code) {
     leaderboard: store.getLeaderboard().slice(0, 50),
   });
 
-  // Auto-suppression de la salle après 2 minutes
-  setTimeout(() => {
+  // Auto-suppression de la salle après 2 minutes (annulé si on relance une manche)
+  if (room.deleteTimer) clearTimeout(room.deleteTimer);
+  room.deleteTimer = setTimeout(() => {
     store.rooms.delete(code);
   }, 120_000);
 }

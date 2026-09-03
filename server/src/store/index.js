@@ -165,6 +165,12 @@ function startBetting(code) {
   room.bets = new Map();
   room.status = 'betting';
   room.winners = [];
+  room.results = null;
+  // Annule la suppression auto de la salle si on relance une manche
+  if (room.deleteTimer) {
+    clearTimeout(room.deleteTimer);
+    room.deleteTimer = null;
+  }
   return room;
 }
 
