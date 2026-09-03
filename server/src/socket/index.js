@@ -59,7 +59,7 @@ export function setupSocket(io) {
       const room2 = store.startBetting(code);
       if (!room2) return ack?.({ error: 'Impossible de démarrer' });
 
-      const challenge = await store.getOrCreateChallenge();
+      const challenge = await store.getFreshChallenge();
       room2.challenge = challenge;
       room2.target = challenge.target;
       room2.statistic = challenge.statistic;
@@ -155,7 +155,7 @@ export function setupSocket(io) {
         if (sb) { sb.join(room.code); sb.data.playerId = b.playerId; sb.data.inMatchmaking = false; }
 
         // Génère le défi puis lance directement la phase de pari
-        const challenge = await store.getOrCreateChallenge();
+        const challenge = await store.getFreshChallenge();
         store.startBetting(room.code);
         room.challenge = challenge;
         room.target = challenge.target;

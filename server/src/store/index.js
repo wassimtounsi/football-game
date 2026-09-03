@@ -133,11 +133,20 @@ async function getOrCreateChallenge() {
 
   challengeCache.set(cacheKey, { challenge, time: now });
 
-  // On déclenche un pré-chauffage du cache sans bloquer
-  const key = cacheKey + '-' + Date.now();
-  challengeCache.set(key, { challenge, time: now });
-
   return challenge;
+}
+
+/**
+ * Génère un NOUVEAU défi à chaque appel (défi propre à chaque partie),
+ * avec fallback si Groq est injoignable. Pas de cache partagé.
+ */
+async function getFreshChallenge() {
+  try {
+    return await generateChallenge();
+  } catch (e) {
+    console.warn('[gamarha] Groq unreachable, fallback to hardcoded challenge:', e.message);
+    return fallbackChallenge();
+  }
 }
 
 function fallbackChallenge() {
@@ -187,6 +196,7 @@ export default {
   placeBet,
   startBetting,
   getOrCreateChallenge,
+  getFreshChallenge,
   recordResult,
   getLeaderboard,
   rooms,
