@@ -10,6 +10,7 @@ export default function Lobby({ code, playerId, name }) {
   const [phase, setPhase] = useState({ status: 'lobby' });
   const [revealed, setRevealed] = useState(null);
   const [betProgress, setBetProgress] = useState(null);
+  const [round, setRound] = useState(0);
   const [copyMsg, setCopyMsg] = useState(false);
 
   useEffect(() => {
@@ -24,9 +25,11 @@ export default function Lobby({ code, playerId, name }) {
     function onPhase(p) {
       setPhase(p);
       // Nouvelle manche (betting) : on efface les résultats précédents
+      // et on incrémente le "round" pour remonter <Game> de zéro (état propre).
       if (p.status === 'betting') {
         setRevealed(null);
         setBetProgress(null);
+        setRound((r) => r + 1);
       }
     }
     function onReveal(r) {
@@ -97,6 +100,7 @@ export default function Lobby({ code, playerId, name }) {
   if (phase.status === 'betting' || phase.status === 'revealed' || phase.status === 'finished') {
     return (
       <Game
+        key={round}
         code={code}
         playerId={playerId}
         name={name}
