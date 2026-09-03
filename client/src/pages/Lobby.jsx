@@ -20,17 +20,15 @@ export default function Lobby({ code, playerId, name }) {
       setPlayers(list);
     }
     function onChallenge(c) {
+      // Un nouveau défi arrive => nouvelle manche. On efface les résultats de
+      // l'ancienne manche et on remonte <Game> à zéro (round++).
       setChallenge(c);
+      setRevealed(null);
+      setBetProgress(null);
+      setRound((r) => r + 1);
     }
     function onPhase(p) {
       setPhase(p);
-      // Nouvelle manche (betting) : on efface les résultats précédents
-      // et on incrémente le "round" pour remonter <Game> de zéro (état propre).
-      if (p.status === 'betting') {
-        setRevealed(null);
-        setBetProgress(null);
-        setRound((r) => r + 1);
-      }
     }
     function onReveal(r) {
       setRevealed(r);
