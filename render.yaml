@@ -1,0 +1,23 @@
+# Déploiement du backend Socket.IO sur Render.
+# Render détecte ce fichier pour configurer le service automatiquement.
+# rootDir=server -> il s'agit bien du BACKEND (Express + Socket.IO), pas du front.
+services:
+  - type: web
+    name: gamarha-backend
+    runtime: node
+    rootDir: server
+    healthCheckPath: /api/health
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FOTMOB_BASE_URL
+        value: https://www.fotmob.com
+      - key: GROQ_MODEL
+        value: openai/gpt-oss-120b
+      # À remplir côté Render (valeurs à garder secrètes sinon)
+      - key: GROQ_API_KEY
+        sync: false
+      - key: CLIENT_ORIGINS
+        sync: false
