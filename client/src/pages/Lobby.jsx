@@ -75,6 +75,19 @@ export default function Lobby({ code, playerId, name }) {
     });
   }
 
+  // Rejouer dans la même salle (mêmes joueurs) : remet en phase de pari
+  // et demande un nouveau défi au serveur (room:start génère un défi frais).
+  function restartGame() {
+    setChallenge(null);
+    setRevealed(null);
+    setPhase({ status: 'lobby' });
+    setBetProgress(null);
+    const socket = connect();
+    socket.emit('room:start', { code }, (res) => {
+      if (res?.error) alert(res.error);
+    });
+  }
+
   // Phase de jeu
   if (phase.status === 'betting' || phase.status === 'revealed' || phase.status === 'finished') {
     return (
@@ -87,6 +100,7 @@ export default function Lobby({ code, playerId, name }) {
         phase={phase}
         revealed={revealed}
         betProgress={betProgress}
+        onRestart={restartGame}
       />
     );
   }

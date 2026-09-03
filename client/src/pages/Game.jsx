@@ -4,7 +4,7 @@ import { searchPlayers } from '../lib/api.js';
 
 const MAX_PICKS = 3;
 
-export default function Game({ code, playerId, name, challenge, players, phase, revealed, betProgress }) {
+export default function Game({ code, playerId, name, challenge, players, phase, revealed, betProgress, onRestart }) {
   const [myPicks, setMyPicks] = useState([]); // [{id, name, team, photo}]
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -86,7 +86,7 @@ export default function Game({ code, playerId, name, challenge, players, phase, 
 
   // --- PHASE RESULTATS ---
   if (revealed) {
-    return <ResultsView revealed={revealed} name={name} playerId={playerId} />;
+    return <ResultsView revealed={revealed} name={name} playerId={playerId} onRestart={onRestart} />;
   }
 
   const challengeActive = challenge || phase.status === 'betting';
@@ -202,7 +202,7 @@ export default function Game({ code, playerId, name, challenge, players, phase, 
 }
 
 // ==== Vue résultats ====
-function ResultsView({ revealed, name, playerId }) {
+function ResultsView({ revealed, name, playerId, onRestart }) {
   const { target, statistic, competition, cumulative, results, winners, leaderboard } = revealed;
   const sorted = [...(results || [])].sort((a, b) => a.diff - b.diff);
 
@@ -264,7 +264,7 @@ function ResultsView({ revealed, name, playerId }) {
         </div>
       )}
 
-      <button className="btn success block" onClick={() => window.location.reload()}>
+      <button className="btn success block" onClick={onRestart}>
         Rejouer
       </button>
     </div>

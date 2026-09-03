@@ -16,13 +16,6 @@ export default function App() {
     setRoute({ view: 'lobby', code, playerId, name: displayName });
   }
 
-  function startGame(code, playerId, displayName) {
-    setName(displayName);
-    setPlayerName(displayName);
-    setSocketKey((k) => k + 1);
-    setRoute({ view: 'lobby', code, playerId, name: displayName });
-  }
-
   function goHome() {
     // Départ explicite : on laisse la salle (room:leave gère les départs volontaires)
     if (route.view === 'lobby' || route.view === 'game') {
@@ -41,7 +34,6 @@ export default function App() {
         </div>
         {route.view !== 'home' && (
           <div>
-            <button className="pitch-btn" onClick={startGame}>Rejouer</button>
             <button className="logout-btn" onClick={goHome}>Quitter</button>
           </div>
         )}
