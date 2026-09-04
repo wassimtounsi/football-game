@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { connect } from '../lib/socket.js';
 import Game from './Game.jsx';
 
@@ -12,6 +12,10 @@ export default function Lobby({ code, playerId, name }) {
   const [betProgress, setBetProgress] = useState(null);
   const [round, setRound] = useState(0);
   const [copyMsg, setCopyMsg] = useState(false);
+  // Ref pour savoir si on est déjà en phase de pari : on ne doit PAS remonter
+  // <Game> (et effacer les joueurs sélectionnés) si un défi arrive pendant
+  // qu'on est déjà en train de parier (ex. re-sync/raccrochage).
+  const phaseStatusRef = useRef('lobby');
 
   useEffect(() => {
     const socket = connect();
@@ -25,9 +29,14 @@ export default function Lobby({ code, playerId, name }) {
       setChallenge(c);
       setRevealed(null);
       setBetProgress(null);
-      setRound((r) => r + 1);
+      // Si on est DÉJÀ en train de parier, garder les sélections de la manche
+      // en cours (l'utilisateur a peut-être déjà choisi ses 3 joueurs).
+      if (phaseStatusRef.current !== 'betting') {
+        setRound((r) => r + 1);
+      }
     }
     function onPhase(p) {
+      phaseStatusRef.current = p?.status || 'lobby';
       setPhase(p);
     }
     function onReveal(r) {

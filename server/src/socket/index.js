@@ -56,26 +56,39 @@ export function setupSocket(io) {
       if (room.hostId !== socket.data?.playerId) {
         return ack?.({ error: 'Seul l\'hôte peut starter' });
       }
+      // Un double clic sur « Lancer » déclenchait deux room:start concurrents :
+      // chacun générait un défi (getFreshChallenge est lent) et le champ room.field
+      // pouvait finir avec un défi différent de celui affiché, d'où un score calculé
+      // avec le mauvais défi. Verrou + rejet si une manche est déjà en cours.
+      if (room.starting) return ack?.({ error: 'La manche est déjà en cours de démarrage' });
+      if (room.status === 'betting') return ack?.({ error: 'La phase de paris est déjà en cours' });
 
-      const room2 = store.startBetting(code);
-      if (!room2) return ack?.({ error: 'Impossible de démarrer' });
+      room.starting = true;
+      try {
+        // Génère le défi AVANT de passer en betting pour que le défi affiché et
+        // room.field soient TOUJOURS le même (pas d'écriture partielle en plein milieu).
+        const challenge = await store.getFreshChallenge();
+        const room2 = store.startBetting(code);
+        if (!room2) return ack?.({ error: 'Impossible de démarrer' });
 
-      const challenge = await store.getFreshChallenge();
-      room2.challenge = challenge;
-      room2.target = challenge.target;
-      room2.statistic = challenge.statistic;
-      room2.competition = challenge.competition;
-      room2.team = challenge.team;
-      room2.field = challenge.field;
-      room2.deadline = Date.now() + 90_000; // 90 secondes pour parier
+        room2.challenge = challenge;
+        room2.target = challenge.target;
+        room2.statistic = challenge.statistic;
+        room2.competition = challenge.competition;
+        room2.team = challenge.team;
+        room2.field = challenge.field;
+        room2.deadline = Date.now() + 90_000; // 90 secondes pour parier
 
-      io.to(code).emit('challenge', challenge);
-      io.to(code).emit('phase', { status: 'betting', deadline: room2.deadline });
-      ack?.({ ok: true });
+        io.to(code).emit('challenge', challenge);
+        io.to(code).emit('phase', { status: 'betting', deadline: room2.deadline });
+        ack?.({ ok: true });
 
-      // Révélation automatique après le délai (reset si on relance une manche)
-      if (room2.revealTimer) clearTimeout(room2.revealTimer);
-      room2.revealTimer = setTimeout(() => revealRoom(code), 90_000);
+        // Révélation automatique après le délai (reset si on relance une manche)
+        if (room2.revealTimer) clearTimeout(room2.revealTimer);
+        room2.revealTimer = setTimeout(() => revealRoom(code), 90_000);
+      } finally {
+        room.starting = false;
+      }
     });
 
     socket.on('bet:place', (data, ack) => {
