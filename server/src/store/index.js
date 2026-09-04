@@ -156,6 +156,9 @@ function fallbackChallenge() {
     { target: 89, statistic: 'Passes décisives', field: 'assists', competition: 'La Liga', framing: 'Ensemble, on bat le record : Passes décisives en La Liga.' },
     { target: 310, statistic: 'Contributions offensives', field: 'goals+assists', competition: 'Serie A', framing: 'Le défi : rassembler le maximum de Contributions offensives en Serie A.' },
     { target: 45, statistic: 'Cartons jaunes', field: 'yellowCards', competition: 'Bundesliga', framing: 'La fiabilité : le moins de Cartons jaunes en Bundesliga.' },
+    { target: 180, statistic: 'Buts', field: 'goals', team: 'Real Madrid CF', framing: 'Le meilleur total de Buts pour Real Madrid CF ?' },
+    { target: 200, statistic: 'Matchs joués', field: 'appearances', team: 'Juventus', framing: 'Qui a le plus de Matchs joués avec Juventus ?' },
+    { target: 120, statistic: 'Contributions offensives', field: 'goals+assists', team: 'FC Barcelona', framing: 'Les légendes de FC Barcelona : Contributions offensives cumulées.' },
   ];
   return options[Math.floor(Math.random() * options.length)];
 }

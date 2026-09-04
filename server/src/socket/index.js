@@ -64,6 +64,7 @@ export function setupSocket(io) {
       room2.target = challenge.target;
       room2.statistic = challenge.statistic;
       room2.competition = challenge.competition;
+      room2.team = challenge.team;
       room2.field = challenge.field;
       room2.deadline = Date.now() + 90_000; // 90 secondes pour parier
 
@@ -227,12 +228,14 @@ const CUMULATIVE_FIELDS = new Set(['goals', 'assists', 'goals+assists', 'appeara
 
 /**
  * Calcule la valeur d'un joueur pour un champ donné :
- * - si le champ est cumulable -> somme sur toute la carrière dans la compétition du défi
+ * - si le champ est cumulable -> somme sur toute la carrière dans la compétition/équipe du défi
  * - sinon -> valeur de la saison en cours (fallback)
  */
-function computeScore(rawPlayer, field, competition) {
+function computeScore(rawPlayer, field, competition, team) {
   if (CUMULATIVE_FIELDS.has(field)) {
-    const stats = extractStats(rawPlayer);
+    if (team) {
+      return fotmob.careerStatForTeam(rawPlayer, team, field);
+    }
     return fotmob.careerStatInCompetition(rawPlayer, competition, field);
   }
   return statValue(extractStats(rawPlayer), field);
@@ -275,7 +278,7 @@ async function revealRoom(code) {
       try {
         const raw = await getPlayerStats(pid);
         const stats = extractStats(raw);
-        const value = computeScore(raw, room.field, room.competition);
+        const value = computeScore(raw, room.field, room.competition, room.team);
         total += value;
         details.push({
           id: pid,
@@ -321,6 +324,7 @@ async function revealRoom(code) {
     target: room.target,
     statistic: room.statistic,
     competition: room.competition,
+    team: room.team,
     framing: room.challenge?.framing,
     cumulative,
     results,

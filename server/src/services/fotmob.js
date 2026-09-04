@@ -229,6 +229,52 @@ export function careerStatInCompetition(playerData, leagueName, stat) {
 }
 
 /**
+ * Top 25 équipes mondiales pour les défis par équipe.
+ * Les noms sont tels qu'apparaissent dans FotMob (seasonEntry.team).
+ */
+export const TOP_TEAMS = [
+  'Real Madrid CF', 'FC Barcelona', 'Atletico Madrid',
+  'Manchester City', 'Liverpool FC', 'Arsenal FC', 'Chelsea FC', 'Manchester United', 'Tottenham Hotspur',
+  'Bayern München', 'Borussia Dortmund', 'Bayer Leverkusen',
+  'Juventus', 'AC Milan', 'Inter Milan', 'SSC Napoli',
+  'Paris Saint-Germain', 'Olympique Marseille', 'AS Monaco',
+  'Al Nassr FC', 'Al Hilal SFC',
+  'Galatasaray SK', 'Fenerbahce SK',
+  'Sporting CP', 'Benfica',
+];
+
+/**
+ * Cumule une statistique sur toute la carrière d'un joueur pour une ÉQUIPE donnée.
+ * Utilise seasonEntry.team (niveau saison) pour filtrer, puis somme goals/assists/appearances.
+ * Retourne un entier (0 si aucune donnée trouvée).
+ */
+export function careerStatForTeam(playerData, teamName, stat) {
+  const want = normLeague(teamName);
+  const careerItems = playerData?.careerHistory?.careerItems;
+  let sum = 0;
+
+  const scan = (entries) => {
+    for (const season of entries || []) {
+      if (!season.team || normLeague(season.team) !== want) continue;
+      if (stat === 'goals+assists') {
+        const g = Number(season.goals);
+        const a = Number(season.assists);
+        if (Number.isFinite(g) && g >= 0) sum += g;
+        if (Number.isFinite(a) && a >= 0) sum += a;
+      } else {
+        const v = Number(season[stat]);
+        if (Number.isFinite(v) && v >= 0) sum += v;
+      }
+    }
+  };
+
+  scan(careerItems?.senior?.seasonEntries);
+  scan(careerItems?.['national team']?.seasonEntries);
+
+  return sum;
+}
+
+/**
  * Joueurs célèbres par grande compétition, utilisés pour échantillonner les
  * ordres de grandeur réels d'une stat (cumul carrière) avant de demander une cible à l'IA.
  */
@@ -283,6 +329,50 @@ export function sampleCompetitionPlayers(competition, count = 6) {
 }
 
 /**
+ * Joueurs connus par équipe (TOP_TEAMS) pour échantillonner les plages de stats.
+ */
+const KNOWN_TEAM_PLAYERS = {
+  'Real Madrid CF': ['Karim Benzema', 'Cristiano Ronaldo', 'Vinicius Junior', 'Rodrygo', 'Luka Modric', 'Toni Kroos'],
+  'FC Barcelona': ['Robert Lewandowski', 'Lionel Messi', 'Pedri', 'Raphinha', 'Frenkie de Jong'],
+  'Atletico Madrid': ['Antoine Griezmann', 'Alvaro Morata', 'Joao Felix', 'Marcos Llorente'],
+  'Manchester City': ['Erling Haaland', 'Kevin De Bruyne', 'Phil Foden', 'Bernardo Silva', 'Jack Grealish'],
+  'Liverpool FC': ['Mohamed Salah', 'Sadio Mane', 'Darwin Nunez', 'Luis Diaz', 'Virgil van Dijk'],
+  'Arsenal FC': ['Bukayo Saka', 'Martin Odegaard', 'Gabriel Jesus', 'Gabriel Martinelli'],
+  'Chelsea FC': ['Cole Palmer', 'Raheem Sterling', 'Enzo Fernandez', 'Nicolas Jackson'],
+  'Manchester United': ['Marcus Rashford', 'Bruno Fernandes', 'Alejandro Garnacho', 'Rasmus Hojlund'],
+  'Tottenham Hotspur': ['Son Heung-min', 'Dejan Kulusevski', 'Richarlison', 'James Maddison'],
+  'Bayern München': ['Harry Kane', 'Jamal Musiala', 'Leroy Sane', 'Thomas Muller', 'Serge Gnabry'],
+  'Borussia Dortmund': ['Jadon Sancho', 'Marco Reus', 'Karim Adeyemi', 'Niclas Fullkrug'],
+  'Bayer Leverkusen': ['Florian Wirtz', 'Victor Boniface', 'Moussa Diaby', 'Granit Xhaka'],
+  'Juventus': ['Dusan Vlahovic', 'Federico Chiesa', 'Paulo Dybala', 'Alvaro Morata', 'Adrien Rabiot'],
+  'AC Milan': ['Rafael Leao', 'Olivier Giroud', 'Christian Pulisic', 'Theo Hernandez'],
+  'Inter Milan': ['Lautaro Martinez', 'Marcus Thuram', 'Romelu Lukaku', 'Nicolò Barella'],
+  'SSC Napoli': ['Victor Osimhen', 'Khvicha Kvaratskhelia', 'Giovanni Di Lorenzo', 'Zambo Anguissa'],
+  'Paris Saint-Germain': ['Kylian Mbappe', 'Neymar', 'Lionel Messi', 'Ousmane Dembele', 'Bradley Barcola'],
+  'Olympique Marseille': ['Alexandre Lacazette', 'Pierre-Emerick Aubameyang', 'Dimitri Payet', ' Vitinha'],
+  'AS Monaco': ['Wissam Ben Yedder', 'Kylian Mbappe', 'James Rodriguez', 'Bernardo Silva'],
+  'Al Nassr FC': ['Cristiano Ronaldo', 'Sadio Mane', 'Aymeric Laporte', 'Marcelo Brozovic'],
+  'Al Hilal SFC': ['Neymar', 'Riyad Mahrez', 'Aleksandar Mitrovic', 'Kalidou Koulibaly'],
+  'Galatasaray SK': ['Mauro Icardi', 'Dries Mertens', 'Hakim Ziyech', 'Wilfried Zaha'],
+  'Fenerbahce SK': ['Edin Dzeko', 'Dusan Tadic', 'Sebastian Szymanski', 'Bright Osayi-Samuel'],
+  'Sporting CP': ['Viktor Gyokeres', 'Marcus Edwards', 'Pedro Goncalves', 'Marcus Rashford'],
+  'Benfica': ['Angel Di Maria', 'Rafa Silva', 'Goncalo Ramos', 'Joao Felix'],
+};
+
+/**
+ * Sélectionne un sous-ensemble aléatoire de joueurs connus d'une équipe.
+ */
+export function sampleTeamPlayers(team, count = 6) {
+  const pool = KNOWN_TEAM_PLAYERS[team] || [];
+  if (pool.length === 0) return [];
+  const idx = new Set();
+  while (idx.size < Math.min(count, pool.length)) {
+    idx.add(Math.floor(Math.random() * pool.length));
+  }
+  return [...idx].map((i) => pool[i]);
+}
+
+/**
  * Récupère les données complètes d'un joueur par son nom (1er résultat), ou null.
  * Utile pour l'échantillonnage des plages de statistiques.
  */
@@ -320,12 +410,37 @@ export async function estimateCareerRange(competition, field, players) {
   return { min: Math.min(...values), max: Math.max(...values), values };
 }
 
+/**
+ * Estime la plage [min, max] d'une stat pour une ÉQUIPE donnée.
+ * Même principe qu'estimateCareerRange mais utilise careerStatForTeam.
+ */
+export async function estimateCareerRangeForTeam(team, field, players) {
+  const values = [];
+  const candidates = players || sampleTeamPlayers(team, 6);
+  for (const name of candidates) {
+    try {
+      const raw = await fetchPlayerByName(name);
+      if (!raw) continue;
+      const v = careerStatForTeam(raw, team, field);
+      if (v > 0) values.push(v);
+    } catch {
+      // ignore
+    }
+  }
+  if (values.length === 0) return null;
+  return { min: Math.min(...values), max: Math.max(...values), values };
+}
+
 export default {
   searchPlayers,
   getPlayerStats,
   extractStats,
   careerStatInCompetition,
+  careerStatForTeam,
   sampleCompetitionPlayers,
+  sampleTeamPlayers,
   fetchPlayerByName,
   estimateCareerRange,
+  estimateCareerRangeForTeam,
+  TOP_TEAMS,
 };

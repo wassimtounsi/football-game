@@ -107,7 +107,7 @@ export default function Game({ code, playerId, name, challenge, players, phase, 
             </div>
           )}
           <div className="comp">
-            {challenge?.competition || 'Compétition secrète'}
+            {challenge?.team || challenge?.competition || 'Compétition secrète'}
           </div>
           <div className="muted">La cible à approcher est :</div>
           <div className="target-number">{challenge?.target ?? '???'}</div>
@@ -217,13 +217,13 @@ export default function Game({ code, playerId, name, challenge, players, phase, 
 
 // ==== Vue résultats ====
 function ResultsView({ revealed, name, playerId, isHost, onRestart }) {
-  const { target, statistic, competition, framing, cumulative, results, winners, leaderboard } = revealed;
+  const { target, statistic, competition, team, framing, cumulative, results, winners, leaderboard } = revealed;
   const sorted = [...(results || [])].sort((a, b) => a.diff - b.diff);
 
   return (
     <div>
       <div className="challenge-banner">
-        <div className="comp">{competition}</div>
+        <div className="comp">{team || competition}</div>
         <div className="muted">
           {framing || (
             <>
@@ -232,7 +232,7 @@ function ResultsView({ revealed, name, playerId, isHost, onRestart }) {
           )}
           {cumulative && (
             <span className="muted" style={{ fontSize: 11 }}>
-              {' '}(cumulée sur toute la carrière dans {competition})
+              {' '}(cumulée sur toute la carrière {team ? 'avec ' + team : 'dans ' + competition})
             </span>
           )}
         </div>
