@@ -146,12 +146,25 @@ export async function generateChallenge() {
 
   let target = range && Math.floor((range.min + range.max) / 2);
   if (range) {
-    const ai = await askTarget(opt.field, opt.statistic, contextLabel, range);
+    // Pour les champs non cumulables (saison en cours, petites valeurs), la cible
+    // doit refléter la SOMME de 3 joueurs et non une valeur d'un seul joueur.
+    const nonCumulative = opt.cumulative === false;
+    const low = nonCumulative ? Math.ceil((range.min + range.max) * 1.5) : range.min;
+    const high = nonCumulative ? Math.ceil((range.min + range.max) * 3) : range.max;
+    const aiRange = { min: Math.max(1, low), max: Math.max(1, high) };
+    const ai = await askTarget(opt.field, opt.statistic, contextLabel, aiRange);
     if (ai !== null) target = ai;
     else {
-      target = Math.floor(Math.random() * (range.max * 2 - range.min)) + range.min;
+      target = nonCumulative
+        ? Math.floor(Math.random() * (high - low + 1)) + low
+        : Math.floor(Math.random() * (range.max * 2 - range.min)) + range.min;
     }
-  } else if (target === null || target === 0) {
+  } else if (opt.cumulative === false) {
+    // Pas de plage estimée (ex: cartons rouges, rares) : cible raisonnable pour 3 joueurs.
+    target = opt.field === 'redCards'
+      ? Math.floor(Math.random() * 4) + 1   // 1 à 4 cartons rouges pour 3 joueurs
+      : Math.floor(Math.random() * 10) + 4; // 4 à 13 cartons jaunes
+  } else {
     target = Math.floor(Math.random() * 401) + 50;
   }
 

@@ -391,9 +391,18 @@ export async function fetchPlayerByName(name) {
 }
 
 /**
- * Estime la plage [min, max] réelle d'une stat (cumul carrière) pour un échantillon
- * de joueurs connus dans une compétition. Retourne { min, max, values } des valeurs
+ * Champs non cumulables : la valeur n'est disponible que pour la saison en cours
+ * (extractStats), et non sur le cumul de la carrière. Pour ces champs, on estime
+ * la plage depuis extractStats (saison en cours) au lieu du cumul carrière.
+ */
+const NON_CUMULATIVE_FIELDS = new Set(['yellowCards', 'redCards', 'minutesPlayed', 'started']);
+
+/**
+ * Estime la plage [min, max] réelle d'une stat pour un échantillon de joueurs
+ * connus dans une compétition. Retourne { min, max, values } des valeurs
  * non nulles (0 ignoré : le joueur n'a probablement pas joué dans cette ligue).
+ * - Champs cumulables (goals, assists, appearances...) : cumul carrière filtré.
+ * - Champs non cumulables (cartons...) : valeur de la saison en cours (extractStats).
  */
 export async function estimateCareerRange(competition, field, players) {
   const values = [];
@@ -402,7 +411,9 @@ export async function estimateCareerRange(competition, field, players) {
     try {
       const raw = await fetchPlayerByName(name);
       if (!raw) continue;
-      const v = careerStatInCompetition(raw, competition, field);
+      const v = NON_CUMULATIVE_FIELDS.has(field)
+        ? extractStats(raw)[field] ?? 0
+        : careerStatInCompetition(raw, competition, field);
       if (v > 0) values.push(v);
     } catch {
       // ignore les joueurs injoignables
@@ -414,7 +425,8 @@ export async function estimateCareerRange(competition, field, players) {
 
 /**
  * Estime la plage [min, max] d'une stat pour une ÉQUIPE donnée.
- * Même principe qu'estimateCareerRange mais utilise careerStatForTeam.
+ * Même principe qu'estimateCareerRange mais utilise careerStatForTeam,
+ * et extractStats pour les champs non cumulables.
  */
 export async function estimateCareerRangeForTeam(team, field, players) {
   const values = [];
@@ -423,7 +435,9 @@ export async function estimateCareerRangeForTeam(team, field, players) {
     try {
       const raw = await fetchPlayerByName(name);
       if (!raw) continue;
-      const v = careerStatForTeam(raw, team, field);
+      const v = NON_CUMULATIVE_FIELDS.has(field)
+        ? extractStats(raw)[field] ?? 0
+        : careerStatForTeam(raw, team, field);
       if (v > 0) values.push(v);
     } catch {
       // ignore
