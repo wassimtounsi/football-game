@@ -209,9 +209,11 @@ function statValue(stats, field) {
   switch (field) {
     case 'goals': return stats.goals ?? 0;
     case 'assists': return stats.assists ?? 0;
+    case 'goals+assists': return (stats.goals ?? 0) + (stats.assists ?? 0);
     case 'appearances': return stats.appearances ?? 0;
     case 'minutesPlayed': return stats.minutesPlayed ?? 0;
     case 'yellowCards': return stats.yellowCards ?? 0;
+    case 'redCards': return stats.redCards ?? 0;
     case 'started': return stats.started ?? stats.appearances ?? 0;
     default: return stats.goals ?? 0;
   }
@@ -221,7 +223,7 @@ function statValue(stats, field) {
  * Champs qui peuvent être cumulés sur toute la carrière, filtrés par compétition.
  * Les autres (minutes, cartons) ne sont disponibles que pour la saison en cours.
  */
-const CUMULATIVE_FIELDS = new Set(['goals', 'assists', 'appearances']);
+const CUMULATIVE_FIELDS = new Set(['goals', 'assists', 'goals+assists', 'appearances']);
 
 /**
  * Calcule la valeur d'un joueur pour un champ donné :
@@ -319,6 +321,7 @@ async function revealRoom(code) {
     target: room.target,
     statistic: room.statistic,
     competition: room.competition,
+    framing: room.challenge?.framing,
     cumulative,
     results,
     winners,

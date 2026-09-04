@@ -10,11 +10,34 @@ const MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 const STAT_OPTIONS = [
   { field: 'goals', statistic: 'Buts' },
   { field: 'assists', statistic: 'Passes décisives' },
+  { field: 'goals+assists', statistic: 'Contributions offensives' },
   { field: 'appearances', statistic: 'Matchs joués' },
+  { field: 'yellowCards', statistic: 'Cartons jaunes', cumulative: false },
+  { field: 'redCards', statistic: 'Cartons rouges', cumulative: false },
 ];
 
 // Compétitions avec assez de joueurs connus pour l'échantillonnage
-const COMPETITIONS = ['Premier League', 'La Liga', 'Serie A', 'Ligue 1', 'Bundesliga'];
+const COMPETITIONS = [
+  'Premier League', 'La Liga', 'Serie A', 'Ligue 1', 'Bundesliga',
+  'Champions League', 'Europa League',
+  'Équipe nationale',
+];
+
+// Phrasings de challenge pour varier l'expérience
+const CHALLENGE_FRAMING = [
+  (stat, comp) => `Le meilleur total de ${stat} en ${comp} ?`,
+  (stat, comp) => `Qui cumule le plus de ${stat} en ${comp} ?`,
+  (stat, comp) => `Ensemble, on bat le record : ${stat} en ${comp}.`,
+  (stat, comp) => `Ton trio de légendes : ${stat} en ${comp}.`,
+  (stat, comp) => `L'objectif : ${stat} cumulés en ${comp}.`,
+  (stat, comp) => `Le défi : rassembler le maximum de ${stat} en ${comp}.`,
+  (stat, comp) => `Combo gagnant : ${stat} en ${comp}.`,
+  (stat, comp) => `Ta dream team ${comp} : ${stat}.`,
+  (stat, comp) => `${stat} en ${comp} — à toi de jouer.`,
+  (stat, comp) => `Les stats mentent pas : ${stat} en ${comp}.`,
+  (stat, comp) => `Quel total de ${stat} en ${comp} peux-tu atteindre ?`,
+  (stat, comp) => `3 joueurs, ${comp} : maximise les ${stat}.`,
+];
 
 /**
  * Appelle Groq pour obtenir une cible logique étant donné une plage réaliste.
@@ -101,10 +124,14 @@ export async function generateChallenge() {
     target = Math.floor(Math.random() * 401) + 50;
   }
 
+  const framingFn = CHALLENGE_FRAMING[Math.floor(Math.random() * CHALLENGE_FRAMING.length)];
+  const framing = framingFn(opt.statistic, competition);
+
   return {
     target,
     statistic: opt.statistic,
     field: opt.field,
     competition,
+    framing,
   };
 }

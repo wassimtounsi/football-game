@@ -164,6 +164,16 @@ const LEAGUE_ALIAS = {
   'uefa champions league': 'championsleague',
   'championnat national': 'national',
   'saudi pro league': 'saudiproleague',
+  'international': 'international',
+  'friendly': 'international',
+  'national team': 'international',
+  'uefa euro': 'international',
+  'world cup': 'international',
+  'european championship': 'international',
+  'fifa world cup': 'international',
+  'fifa world cup qualifier': 'international',
+  'copa america': 'international',
+  'african cup of nations': 'international',
 };
 
 /**
@@ -185,20 +195,35 @@ function normLeague(name) {
  * une compétition donnée (ex : "Premier League").
  * provinces : goals, assists, appearances.
  * Retourne un entier (0 si aucune donnée trouvée).
+ *
+ * Pour "Équipe nationale", on scanne aussi les entrées internationales
+ * (careerItems.international), car FotMob n'y range pas les sélections.
  */
 export function careerStatInCompetition(playerData, leagueName, stat) {
   const want = normLeague(leagueName);
-  const senior = playerData?.careerHistory?.careerItems?.senior;
-  const entries = senior?.seasonEntries || [];
+  const careerItems = playerData?.careerHistory?.careerItems;
+  const isNational = want === 'international';
   let sum = 0;
 
-  for (const season of entries) {
-    for (const t of season.tournamentStats || []) {
-      if (normLeague(t.leagueName) !== want) continue;
-      const v = Number(t[stat]);
-      if (Number.isFinite(v) && v >= 0) sum += v;
+  const scan = (entries) => {
+    for (const season of entries || []) {
+      for (const t of season.tournamentStats || []) {
+        if (normLeague(t.leagueName) !== want) continue;
+        if (stat === 'goals+assists') {
+          const g = Number(t['goals']);
+          const a = Number(t['assists']);
+          if (Number.isFinite(g) && g >= 0) sum += g;
+          if (Number.isFinite(a) && a >= 0) sum += a;
+        } else {
+          const v = Number(t[stat]);
+          if (Number.isFinite(v) && v >= 0) sum += v;
+        }
+      }
     }
-  }
+  };
+
+  scan(careerItems?.senior?.seasonEntries);
+  if (isNational) scan(careerItems?.international?.seasonEntries);
 
   return sum;
 }
@@ -228,6 +253,19 @@ const KNOWN_COMPETITION_PLAYERS = {
   Bundesliga: [
     'Robert Lewandowski', 'Harry Kane', 'Erling Haaland', 'Florian Wirtz', 'Jamal Musiala',
     'Ronaldinho', 'Joshua Kimmich',
+  ],
+  'Champions League': [
+    'Cristiano Ronaldo', 'Lionel Messi', 'Karim Benzema', 'Robert Lewandowski', 'Kylian Mbappe',
+    'Mohamed Salah', 'Thomas Muller', 'Thierry Henry', 'Raul Gonzalez', 'Luiz Adriano',
+    'Filippo Inzaghi', 'Zinedine Zidane',
+  ],
+  'Europa League': [
+    'Cristiano Ronaldo', 'Romelu Lukaku', 'Duvan Zapata', 'Bruno Fernandes', 'Radamel Falcao',
+    'Wout Weghorst', 'Alvaro Morata', 'Hulk', 'Taison',
+  ],
+  'Équipe nationale': [
+    'Lionel Messi', 'Cristiano Ronaldo', 'Kylian Mbappe', 'Harry Kane', 'Romelu Lukaku',
+    'Memphis Depay', 'Robert Lewandowski', 'Zlatan Ibrahimovic', 'Robert Lewandowski',
   ],
 };
 

@@ -151,10 +151,11 @@ async function getFreshChallenge() {
 
 function fallbackChallenge() {
   const options = [
-    { target: 137, statistic: 'Buts', field: 'goals', competition: 'Premier League' },
-    { target: 245, statistic: 'Matchs joués', field: 'appearances', competition: 'Premier League' },
-    { target: 89, statistic: 'Passes décisives', field: 'assists', competition: 'La Liga' },
-    { target: 310, statistic: 'Minutes jouées', field: 'minutesPlayed', competition: 'Serie A' },
+    { target: 137, statistic: 'Buts', field: 'goals', competition: 'Premier League', framing: 'Le meilleur total de Buts en Premier League ?' },
+    { target: 245, statistic: 'Matchs joués', field: 'appearances', competition: 'Premier League', framing: 'Qui cumule le plus de Matchs joués en Premier League ?' },
+    { target: 89, statistic: 'Passes décisives', field: 'assists', competition: 'La Liga', framing: 'Ensemble, on bat le record : Passes décisives en La Liga.' },
+    { target: 310, statistic: 'Contributions offensives', field: 'goals+assists', competition: 'Serie A', framing: 'Le défi : rassembler le maximum de Contributions offensives en Serie A.' },
+    { target: 45, statistic: 'Cartons jaunes', field: 'yellowCards', competition: 'Bundesliga', framing: 'La fiabilité : le moins de Cartons jaunes en Bundesliga.' },
   ];
   return options[Math.floor(Math.random() * options.length)];
 }
