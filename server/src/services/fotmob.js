@@ -180,7 +180,61 @@ const LEAGUE_ALIAS = {
 };
 
 /**
- * Normalise le nom d'une compétition pour comparer entre elles
+ * Alias canoniques des équipes (TOP_TEAMS) pour comparer les noms : le défi
+ * utilise le nom canonique du jeu, mais FotMob range ces équipes sous un nom
+ * légèrement différent ("FC Barcelona" vs "Barcelona", "Bayern München" vs
+ * "Bayern Munich", "Paris Saint-Germain" vs "PSG", etc.).
+ */
+const TEAM_ALIAS = {
+  'realmadridcf': 'realmadrid',
+  'realmadrid': 'realmadrid',
+  'fcbarcelona': 'barcelona',
+  'barcelona': 'barcelona',
+  'atleticomadrid': 'atleticomadrid',
+  'atletico': 'atleticomadrid',
+  'manchestercity': 'manchestercity',
+  'manchester city': 'manchestercity',
+  'liverpoolfc': 'liverpool',
+  'liverpool': 'liverpool',
+  'arsenalfc': 'arsenal',
+  'arsenal': 'arsenal',
+  'chelseafc': 'chelsea',
+  'chelsea': 'chelsea',
+  'manchesterunited': 'manchesterunited',
+  'manchester united': 'manchesterunited',
+  'manutd': 'manchesterunited',
+  'tottenhamhotspur': 'tottenham',
+  'tottenham': 'tottenham',
+  'astonvilla': 'astonvilla',
+  'bayernmunchen': 'bayernmunich',
+  'bayernmunich': 'bayernmunich',
+  'fcbayern': 'bayernmunich',
+  'borussiadortmund': 'borussiadortmund',
+  'bayerleverkusen': 'bayerleverkusen',
+  'rbleipzig': 'rbleipzig',
+  'rb leipzig': 'rbleipzig',
+  'juventus': 'juventus',
+  'juventusfc': 'juventus',
+  'acmilan': 'acmilan',
+  'ac milan': 'acmilan',
+  'intermilan': 'intermilan',
+  'inter': 'intermilan',
+  'sscnapoli': 'napoli',
+  'napoli': 'napoli',
+  'roma': 'roma',
+  'asroma': 'roma',
+  'parissaintgermain': 'parissaintgermain',
+  'parissg': 'parissaintgermain',
+  'psg': 'parissaintgermain',
+  'olympiquemarseille': 'marseille',
+  'olympique de marseille': 'marseille',
+  'marseille': 'marseille',
+  'asmonaco': 'monaco',
+  'monaco': 'monaco',
+};
+
+/**
+ * Normalise le nom d'une compétition ou d'une équipe pour comparer entre elles
  * (minuscules, accents retirés, alias canoniques).
  */
 function normLeague(name) {
@@ -190,7 +244,7 @@ function normLeague(name) {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '')
     .trim();
-  return LEAGUE_ALIAS[cleaned] || cleaned;
+  return TEAM_ALIAS[cleaned] || LEAGUE_ALIAS[cleaned] || cleaned;
 }
 
 /**
