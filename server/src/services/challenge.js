@@ -7,14 +7,19 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
 const MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 
 // Stats cumulables par compétition / équipe supports par le moteur de score (cumul carrière)
+// Les cartons et minutes s'appuient sur Transfermarkt (cumul carrière).
 const STAT_OPTIONS = [
   { field: 'goals', statistic: 'Buts' },
   { field: 'assists', statistic: 'Passes décisives' },
   { field: 'goals+assists', statistic: 'Contributions offensives' },
   { field: 'appearances', statistic: 'Matchs joués' },
-  { field: 'yellowCards', statistic: 'Cartons jaunes', cumulative: false },
-  { field: 'redCards', statistic: 'Cartons rouges', cumulative: false },
+  { field: 'yellowCards', statistic: 'Cartons jaunes' },
+  { field: 'redCards', statistic: 'Cartons rouges' },
 ];
+
+// Champs dont les cumuls carrière proviennent de Transfermarkt (cartes, minutes),
+// avec estimation de plage via Transfermarkt au lieu de FotMob.
+const TM_FIELDS = new Set(['yellowCards', 'redCards', 'minutesPlayed']);
 
 // Compétitions (ligues / tournois)
 const COMPETITIONS = [
@@ -117,7 +122,8 @@ export async function generateChallenge() {
   const opt = STAT_OPTIONS[Math.floor(Math.random() * STAT_OPTIONS.length)];
   const isTeamChallenge = Math.random() < 0.5;
 
-  const { estimateCareerRange, estimateCareerRangeForTeam, TOP_TEAMS } = await import('./fotmob.js');
+  const { estimateCareerRange, estimateCareerRangeForTeam, sampleCompetitionPlayers, sampleTeamPlayers, TOP_TEAMS } = await import('./fotmob.js');
+  const tm = await import('./transfermarkt.js');
 
   let contextLabel = '';
   let range = null;
@@ -129,7 +135,11 @@ export async function generateChallenge() {
     team = TOP_TEAMS[Math.floor(Math.random() * TOP_TEAMS.length)];
     contextLabel = team;
     try {
-      range = await estimateCareerRangeForTeam(team, opt.field);
+      if (TM_FIELDS.has(opt.field)) {
+        range = await tm.estimateCareerRangeForTeam(team, opt.field, sampleTeamPlayers(team, 6));
+      } else {
+        range = await estimateCareerRangeForTeam(team, opt.field);
+      }
     } catch {
       range = null;
     }
@@ -138,7 +148,11 @@ export async function generateChallenge() {
     competition = COMPETITIONS[Math.floor(Math.random() * COMPETITIONS.length)];
     contextLabel = competition;
     try {
-      range = await estimateCareerRange(competition, opt.field);
+      if (TM_FIELDS.has(opt.field)) {
+        range = await tm.estimateCareerRange(competition, opt.field, sampleCompetitionPlayers(competition, 6));
+      } else {
+        range = await estimateCareerRange(competition, opt.field);
+      }
     } catch {
       range = null;
     }
@@ -146,24 +160,15 @@ export async function generateChallenge() {
 
   let target = range && Math.floor((range.min + range.max) / 2);
   if (range) {
-    // Pour les champs non cumulables (saison en cours, petites valeurs), la cible
-    // doit refléter la SOMME de 3 joueurs et non une valeur d'un seul joueur.
-    const nonCumulative = opt.cumulative === false;
-    const low = nonCumulative ? Math.ceil((range.min + range.max) * 1.5) : range.min;
-    const high = nonCumulative ? Math.ceil((range.min + range.max) * 3) : range.max;
+    // Somme de 3 joueurs : la cible se situe au-delà du max d'un seul joueur.
+    const low = range.min;
+    const high = Math.ceil(range.max * 2);
     const aiRange = { min: Math.max(1, low), max: Math.max(1, high) };
     const ai = await askTarget(opt.field, opt.statistic, contextLabel, aiRange);
     if (ai !== null) target = ai;
     else {
-      target = nonCumulative
-        ? Math.floor(Math.random() * (high - low + 1)) + low
-        : Math.floor(Math.random() * (range.max * 2 - range.min)) + range.min;
+      target = Math.floor(Math.random() * (high - low + 1)) + low;
     }
-  } else if (opt.cumulative === false) {
-    // Pas de plage estimée (ex: cartons rouges, rares) : cible raisonnable pour 3 joueurs.
-    target = opt.field === 'redCards'
-      ? Math.floor(Math.random() * 4) + 1   // 1 à 4 cartons rouges pour 3 joueurs
-      : Math.floor(Math.random() * 10) + 4; // 4 à 13 cartons jaunes
   } else {
     target = Math.floor(Math.random() * 401) + 50;
   }

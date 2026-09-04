@@ -1,5 +1,6 @@
 import store from '../store/index.js';
 import fotmob, { getPlayerStats, extractStats } from '../services/fotmob.js';
+import transfermarkt from '../services/transfermarkt.js';
 
 let _io = null;
 
@@ -221,17 +222,35 @@ function statValue(stats, field) {
 }
 
 /**
- * Champs qui peuvent être cumulés sur toute la carrière, filtrés par compétition.
- * Les autres (minutes, cartons) ne sont disponibles que pour la saison en cours.
+ * Champs qui peuvent être cumulés sur toute la carrière via FotMob (goals/assists/...).
  */
 const CUMULATIVE_FIELDS = new Set(['goals', 'assists', 'goals+assists', 'appearances']);
 
 /**
- * Calcule la valeur d'un joueur pour un champ donné :
- * - si le champ est cumulable -> somme sur toute la carrière dans la compétition/équipe du défi
- * - sinon -> valeur de la saison en cours (fallback)
+ * Champs dont le cumul carrière provient de Transfermarkt (cartons, minutes).
  */
-function computeScore(rawPlayer, field, competition, team) {
+const TM_CAREER_FIELDS = new Set(['yellowCards', 'redCards', 'minutesPlayed']);
+
+/**
+ * Calcule la valeur d'un joueur pour un champ donné :
+ * - cartons / minutes -> cumul carrière via Transfermarkt (filtré compétition/équipe)
+ * - sinon -> cumul carrière FotMob (compétition/équipe) ou valeur de la saison en cours
+ */
+async function computeScore(rawPlayer, field, competition, team, playerName) {
+  if (TM_CAREER_FIELDS.has(field)) {
+    try {
+      const tmPlayer = await transfermarkt.searchPlayerByName(rawPlayer?.name || playerName);
+      if (tmPlayer) {
+        if (team) return await transfermarkt.careerStatForTeam(tmPlayer.id, team, field);
+        return await transfermarkt.careerStatInCompetition(tmPlayer.id, competition, field);
+      }
+    } catch (e) {
+      console.warn(`[gamarha] transfermarkt lookup failed for ${playerName}:`, e.message);
+    }
+    // Repli : saison en cours FotMob
+    return statValue(extractStats(rawPlayer), field);
+  }
+
   if (CUMULATIVE_FIELDS.has(field)) {
     if (team) {
       return fotmob.careerStatForTeam(rawPlayer, team, field);
@@ -278,7 +297,7 @@ async function revealRoom(code) {
       try {
         const raw = await getPlayerStats(pid);
         const stats = extractStats(raw);
-        const value = computeScore(raw, room.field, room.competition, room.team);
+        const value = await computeScore(raw, room.field, room.competition, room.team, stats.name);
         total += value;
         details.push({
           id: pid,

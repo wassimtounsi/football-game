@@ -109,6 +109,7 @@ export async function getPlayerStats(playerId) {
         stats: player.mainLeague?.stats || [],
         leagueName: player.mainLeague?.leagueName || null,
         careerHistory: player.careerHistory || null,
+        recentMatches: player.recentMatches || [],
       };
     } catch (e) {
       lastErr = e;
