@@ -86,9 +86,10 @@ function leaveRoom(code, playerId) {
 
 function placeBet(code, playerId, playerIds, players) {
   const room = getRoom(code);
-  if (!room || room.status !== 'betting') return null;
-  if (room.players.some((p) => p.id === playerId) === false) return null;
-  if (playerIds.length !== 3) return null;
+  if (!room) return { error: 'Salle introuvable' };
+  if (room.status !== 'betting') return { error: 'La phase de paris est terminée (délai écoulé ou résultats révélés)' };
+  if (room.players.some((p) => p.id === playerId) === false) return { error: 'Tu ne fais plus partie de la salle (recharge la page)' };
+  if (playerIds.length !== 3) return { error: 'Sélectionne exactement 3 joueurs' };
 
   room.bets.set(playerId, {
     ids: playerIds,

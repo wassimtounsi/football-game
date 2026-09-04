@@ -82,7 +82,9 @@ export function setupSocket(io) {
       const { code, playerId, players = [] } = data || {};
       const playerIds = (data?.playerIds || []).length === 3 ? data.playerIds.map((x) => Number(x)) : players.map((p) => p.id);
       const room = store.placeBet(code, playerId, playerIds, players);
-      if (!room) return ack?.({ error: 'Pari invalide ou salle fermée' });
+      if (!room || room.error) {
+        return ack?.({ error: room?.error || 'Pari invalide ou salle fermée' });
+      }
 
       const nbBets = [...room.bets.keys()].length;
       const expected = room.players.length;
