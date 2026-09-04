@@ -122,8 +122,10 @@ export async function getPlayerStats(playerId) {
  */
 export function extractStats(playerData) {
   const list = playerData.stats || [];
+  const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
   const get = (key) => {
-    const found = list.find((s) => s.localizedTitleId === key || s.title?.toLowerCase() === key);
+    const nkey = norm(key);
+    const found = list.find((s) => norm(s.localizedTitleId) === nkey || norm(s.title) === nkey);
     return found ? Number(found.value) || 0 : null;
   };
 
