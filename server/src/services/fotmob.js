@@ -232,18 +232,16 @@ export function careerStatInCompetition(playerData, leagueName, stat) {
 }
 
 /**
- * Top 25 équipes mondiales pour les défis par équipe.
+ * Top équipes mondiales pour les défis par équipe.
  * Les noms sont tels qu'apparaissent dans FotMob (seasonEntry.team).
  */
 export const TOP_TEAMS = [
   'Real Madrid CF', 'FC Barcelona', 'Atletico Madrid',
   'Manchester City', 'Liverpool FC', 'Arsenal FC', 'Chelsea FC', 'Manchester United', 'Tottenham Hotspur',
-  'Bayern München', 'Borussia Dortmund', 'Bayer Leverkusen',
-  'Juventus', 'AC Milan', 'Inter Milan', 'SSC Napoli',
+  'Aston Villa',
+  'Bayern München', 'Borussia Dortmund', 'Bayer Leverkusen', 'RB Leipzig',
+  'Juventus', 'AC Milan', 'Inter Milan', 'SSC Napoli', 'Roma',
   'Paris Saint-Germain', 'Olympique Marseille', 'AS Monaco',
-  'Al Nassr FC', 'Al Hilal SFC',
-  'Galatasaray SK', 'Fenerbahce SK',
-  'Sporting CP', 'Benfica',
 ];
 
 /**
@@ -344,22 +342,19 @@ const KNOWN_TEAM_PLAYERS = {
   'Chelsea FC': ['Cole Palmer', 'Raheem Sterling', 'Enzo Fernandez', 'Nicolas Jackson'],
   'Manchester United': ['Marcus Rashford', 'Bruno Fernandes', 'Alejandro Garnacho', 'Rasmus Hojlund'],
   'Tottenham Hotspur': ['Son Heung-min', 'Dejan Kulusevski', 'Richarlison', 'James Maddison'],
+  'Aston Villa': ['Ollie Watkins', 'Leon Bailey', 'John McGinn', 'Youri Tielemans', 'Douglas Luiz'],
   'Bayern München': ['Harry Kane', 'Jamal Musiala', 'Leroy Sane', 'Thomas Muller', 'Serge Gnabry'],
   'Borussia Dortmund': ['Jadon Sancho', 'Marco Reus', 'Karim Adeyemi', 'Niclas Fullkrug'],
   'Bayer Leverkusen': ['Florian Wirtz', 'Victor Boniface', 'Moussa Diaby', 'Granit Xhaka'],
+  'RB Leipzig': ['Xavi Simons', 'Dani Olmo', 'Benjamin Sesko', 'Lois Openda', 'Christoph Baumgartner'],
   'Juventus': ['Dusan Vlahovic', 'Federico Chiesa', 'Paulo Dybala', 'Alvaro Morata', 'Adrien Rabiot'],
   'AC Milan': ['Rafael Leao', 'Olivier Giroud', 'Christian Pulisic', 'Theo Hernandez'],
   'Inter Milan': ['Lautaro Martinez', 'Marcus Thuram', 'Romelu Lukaku', 'Nicolò Barella'],
   'SSC Napoli': ['Victor Osimhen', 'Khvicha Kvaratskhelia', 'Giovanni Di Lorenzo', 'Zambo Anguissa'],
+  'Roma': ['Paulo Dybala', 'Lorenzo Pellegrini', 'Artem Dovbyk', 'Cengiz Under', 'Tammy Abraham'],
   'Paris Saint-Germain': ['Kylian Mbappe', 'Neymar', 'Lionel Messi', 'Ousmane Dembele', 'Bradley Barcola'],
   'Olympique Marseille': ['Alexandre Lacazette', 'Pierre-Emerick Aubameyang', 'Dimitri Payet', ' Vitinha'],
   'AS Monaco': ['Wissam Ben Yedder', 'Kylian Mbappe', 'James Rodriguez', 'Bernardo Silva'],
-  'Al Nassr FC': ['Cristiano Ronaldo', 'Sadio Mane', 'Aymeric Laporte', 'Marcelo Brozovic'],
-  'Al Hilal SFC': ['Neymar', 'Riyad Mahrez', 'Aleksandar Mitrovic', 'Kalidou Koulibaly'],
-  'Galatasaray SK': ['Mauro Icardi', 'Dries Mertens', 'Hakim Ziyech', 'Wilfried Zaha'],
-  'Fenerbahce SK': ['Edin Dzeko', 'Dusan Tadic', 'Sebastian Szymanski', 'Bright Osayi-Samuel'],
-  'Sporting CP': ['Viktor Gyokeres', 'Marcus Edwards', 'Pedro Goncalves', 'Marcus Rashford'],
-  'Benfica': ['Angel Di Maria', 'Rafa Silva', 'Goncalo Ramos', 'Joao Felix'],
 };
 
 /**
