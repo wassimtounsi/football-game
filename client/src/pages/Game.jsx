@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { connect } from '../lib/socket.js';
 import { searchPlayers } from '../lib/api.js';
+import ChallengeBanner from '../components/ChallengeBanner.jsx';
 
 const MAX_PICKS = 3;
 
@@ -100,35 +101,7 @@ export default function Game({ code, playerId, name, challenge, players, phase, 
     <div>
       {/* Bannière défi */}
       {challengeActive && (
-        <div className="challenge-banner">
-          {countdown !== null && (
-            <div className="muted" style={{ letterSpacing: 1 }}>
-              Temps restant : <b style={{ color: 'var(--gold)' }}>{countdown}s</b>
-            </div>
-          )}
-          <div className="comp">
-            {challenge?.team || challenge?.competition || 'Compétition secrète'}
-          </div>
-          <div className="muted">La cible à approcher est :</div>
-          <div className="target-number">{challenge?.target ?? '???'}</div>
-          <div className="muted">
-            {challenge?.framing
-              ? (
-                <>
-                  {challenge.framing}
-                  {' '}
-                  <span style={{ fontSize: '0.85em' }}>(au plus proche de la cible)</span>
-                </>
-              )
-              : (
-                <>
-                  Compose une équipe de 3 joueurs pour un total en{' '}
-                  <b style={{ color: 'var(--text)' }}>{challenge?.statistic || 'statistique'}</b>.
-                </>
-              )
-            }
-          </div>
-        </div>
+        <ChallengeBanner challenge={challenge} countdown={countdown} />
       )}
 
       {/* Sélection des joueurs */}
@@ -206,9 +179,9 @@ export default function Game({ code, playerId, name, challenge, players, phase, 
 
       {/* Scores en direct */}
       {!bettingOpen && challengeActive && (
-        <div className="card">
-          <h3>En attente du lancement...</h3>
-          <p className="muted">Le défi a été généré, l'hôte va lancer la manche.</p>
+        <div className="card" style={{ textAlign: 'center' }}>
+          <div className="spinner" />
+          <p className="muted" style={{ marginTop: 10 }}>En attente du lancement...</p>
         </div>
       )}
     </div>
@@ -222,23 +195,7 @@ function ResultsView({ revealed, name, playerId, isHost, onRestart }) {
 
   return (
     <div>
-      <div className="challenge-banner">
-        <div className="comp">{team || competition}</div>
-        <div className="muted">
-          {framing || (
-            <>
-              Statistique : <b style={{ color: 'var(--text)' }}>{statistic}</b>
-            </>
-          )}
-          {cumulative && (
-            <span className="muted" style={{ fontSize: 11 }}>
-              {' '}(cumulée sur toute la carrière {team ? 'avec ' + team : 'dans ' + competition})
-            </span>
-          )}
-        </div>
-        <div className="muted">Cible à approcher :</div>
-        <div className="target-number">{target}</div>
-      </div>
+      <ChallengeBanner revealed={revealed} compact />
 
       <h2>Résultats</h2>
       {sorted.map((r) => (
